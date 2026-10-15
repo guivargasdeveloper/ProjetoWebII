@@ -43,27 +43,37 @@ router.get("/situations", (req: Request, res: Response) => {
 });
 
 // Criar a visualização do item cadastrado em situação
-router.get("/situations/:id", async (req: Request, res: Response) => {
+router.put("/situations/:id", async (req: Request, res: Response) => {
     try {
 
         const { id } = req.params;
 
+        const data = req.body;
+
         const situationRepository = AppDataSource.getRepository(Situation);
 
-        const situations = await situationRepository.findOneBy({id : parseInt(id as string)});
+        const situation = await situationRepository.findOneBy({id : parseInt(id as string)});
 
-        if(!Situation) {
+        if(!situation) {
             res.status(404).json({ messagem: "Situação não encontrada!" });
             return;
         }
+        // Atualiza os dados
+        situationRepository.merge(situation, data);
 
-        res.status(200).json({ situations });
-        return
+        // Salvar as alterações
+        const updatedSituation = await situationRepository.save(situation);
+
+        res.status(200).json({ 
+            messagem: "Situação atualizada com sucesso!",
+            situation: updatedSituation
+        });
+        
 
 
     } catch (error) {
         res.status(500).json({
-            messagem: "Erro ao listar situações!",
+            messagem: "Erro ao editar situações!",
         });
         return
     }
