@@ -80,7 +80,7 @@ router.put("/situations/:id", async (req: Request, res: Response) => {
 });
 
 
-// Criar a rota POST
+// Cadastra item do banco de dados POST
 router.post("/situations", async(req:Request, res:Response) =>{
     try {
 
@@ -101,6 +101,40 @@ router.post("/situations", async(req:Request, res:Response) =>{
             messagem: "Erro ao criar situação!",
             });
     }
+});
+
+router.delete("/situations/:id", async (req: Request, res: Response) => {
+    try {
+
+        const { id } = req.params;
+
+        const situationRepository = AppDataSource.getRepository(Situation);
+
+        const situation = await situationRepository.findOneBy({id : parseInt(id as string)});
+
+        if(!situation) {
+            res.status(404).json({ messagem: "Situação não encontrada!" });
+            return;
+        }
+        // Remove os dados
+        await situationRepository.remove(situation);
+
+        // Salvar as alterações
+        const updatedSituation = await situationRepository.save(situation);
+
+        res.status(200).json({ 
+            messagem: "Situação removida com sucesso!",
+            situation: updatedSituation
+        });
+
+    } catch (error) {
+        res.status(500).json({
+            messagem: "Erro ao remover situações!",
+        });
+        return
+    }
+    
+
 });
 
 
