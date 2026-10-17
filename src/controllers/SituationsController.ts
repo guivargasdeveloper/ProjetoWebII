@@ -23,14 +23,55 @@ import AuthController from "../controllers/AuthController";
 router.use("/auth", AuthController);
 
 // Criar a LISTA
-router.get("/situations", (req: Request, res: Response) => {
+router.get("/situations", async (req: Request, res: Response) => {
     try {
 
+        // Obter o repositório da entidade Situation
         const situationRepository = AppDataSource.getRepository(Situation);
 
-        const situations = situationRepository.find();
+        // Receber o numero de itens por página e a página atual
+        const page = Number(req.query.page) || 1;
+
+        // Definir o limite de itens por página e a página atual
+        const limite = 1;
+
+        // Contar o total de itens na tabela
+        const totalSituations = await situationRepository.count();
+
+        // Verificar se existem registros por pagina
+        if (totalSituations === 0) {
+            res.status(400).json({ messagem: "Nenhuma situação encontrada!" });
+            return;
+        }
+
+        // Calcular a ultima pagina
+        const lastPage = Math.ceil(totalSituations / limite);
+
+        // Calcular o offset para a consulta (a partir de qual item começar a buscar)
+        const offset = (page - 1) * limite;
+
+        // Verificar se a página solicitada é válida
+        if (page > lastPage) {
+            res.status(400).json({ messagem: "Página não encontrada! O total de páginas é ${lastPage}." });
+            return;
+        }
+
+
+        // Recuperar os itens da tabela com paginação
+        const situations = situationRepository.find(
+{
+            skip: offset,
+            take: limite,
+            order: {id: "DESC"},
+        });
         
-        res.status(200).json({ situations });
+        // Retornar os itens encontrados como resposta
+        res.status(200).json({ 
+            currentPage: page,
+            lastPage,
+            totalSituations,
+            situations,
+        });
         return
 
 
@@ -38,7 +79,7 @@ router.get("/situations", (req: Request, res: Response) => {
         res.status(500).json({
             messagem: "Erro ao listar situações!",
         });
-        return
+        return;
     }
 });
 
