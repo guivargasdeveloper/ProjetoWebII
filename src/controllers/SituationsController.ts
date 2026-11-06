@@ -127,6 +127,32 @@ router.post("/situations", async(req:Request, res:Response) =>{
 
         var data = req.body;
 
+        const schema = yup.object().shape({
+            namesituation: yup.string()
+            .required("O campo 'namesituation' é obrigatório!"),
+            .min(3, "O campo 'namesituation' deve ter no mínimo 3 caracteres!")
+
+            await schema.validate(data, { abortEarly: false });
+
+        const situationRepository = AppDataSource.getRepository(Situation);
+
+        const newSituation = situationRepository.create(data);
+
+        await situationRepository.save(newSituation);
+
+        res.status(201).json({
+            messagem: "Situação criada com sucesso!",
+            situation: newSituation,
+        });
+        
+    } catch (error) {
+        if (error instanceof yup.ValidationError) {
+        res.status(400).json({
+            messagem: "Erro de validação!",
+            errors: error.errors,
+        });
+        return;
+
         const situationRepository = AppDataSource.getRepository(Situation);
 
         const newSituation = situationRepository.create(data);
