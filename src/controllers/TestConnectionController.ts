@@ -15,15 +15,9 @@ AppDataSource.initialize().then(() => {
     console.log("Erro ao conectar com o banco de dados:", error);
 })
 
-// Incluir as Controllers
-import AuthController from "../controllers/AuthController";
-
-// Criar as rotas
-router.use("/auth", AuthController);
-
 // Criar a rota GET principal
-router.get("/", (req: Request, res: Response) => {
-    res.send("Bem-vindo Pessoal! tela de login da rota");
+router.get("/test-connection", (req: Request, res: Response) => {
+   res.status(200).json({ message: "Conexão com API realizada com sucesso!" });
 });
 
 // Exportar a intrução da rota
